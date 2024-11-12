@@ -1,0 +1,31 @@
+<template>
+    <lightning-card title="Permits">
+        <lightning-card
+            class="slds-m-around_medium"
+            if:true={permits}
+        >
+            <template
+                for:each={permits}
+                for:item="permit"
+            >
+                <!-- <lightning-datatable data={permit} columns={columns} key-field="Id" onrowaction={handleRowAction}></lightning-datatable> -->
+                <lightning-card key={permit.Id}>
+                    <div>
+                        <p>
+                            <a
+                                href="javascript:void(0);"
+                                onclick={handleClick}
+                                data-id={permit.Id}
+                            >
+                                {permit.Name}
+                            </a>
+                        </p>
+                        <p>
+                            {permit.CreatedDate}
+                        </p>
+                    </div>
+                </lightning-card>
+            </template>
+        </lightning-card>
+    </lightning-card>
+</template>
