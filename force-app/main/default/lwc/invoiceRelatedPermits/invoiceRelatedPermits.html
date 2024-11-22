@@ -1,31 +1,22 @@
 <template>
     <lightning-card title="Permits">
         <lightning-card
-            class="slds-m-around_medium"
-            if:true={permits}
+            class="slds-var-m-around_medium"
+            if:false={displayPermits}
         >
-            <template
-                for:each={permits}
-                for:item="permit"
+            <p class="slds-text-heading_medium">There are no permits associated with this vendor</p>
+        </lightning-card>
+        <lightning-card
+            class="slds-var-m-around_medium"
+            if:true={displayPermits}
+        >
+            <lightning-datatable
+                key-field="id"
+                data={displayPermits}
+                columns={columns}
+                hide-checkbox-column
             >
-                <!-- <lightning-datatable data={permit} columns={columns} key-field="Id" onrowaction={handleRowAction}></lightning-datatable> -->
-                <lightning-card key={permit.Id}>
-                    <div>
-                        <p>
-                            <a
-                                href="javascript:void(0);"
-                                onclick={handleClick}
-                                data-id={permit.Id}
-                            >
-                                {permit.Name}
-                            </a>
-                        </p>
-                        <p>
-                            {permit.CreatedDate}
-                        </p>
-                    </div>
-                </lightning-card>
-            </template>
+            </lightning-datatable>
         </lightning-card>
     </lightning-card>
 </template>

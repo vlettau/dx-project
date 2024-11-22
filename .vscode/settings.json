@@ -5,6 +5,6 @@
     "**/.sfdx": true
   },
   "codeBuilder.showWelcomePage": false,
-  "salesforce.einsteinForDevelopers.enable": true,
+  "salesforce.einsteinForDevelopers.enable": false,
   "salesforcedx-vscode-core.show-cli-success-msg": false
 }

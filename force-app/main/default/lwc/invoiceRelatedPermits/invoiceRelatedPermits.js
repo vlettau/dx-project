@@ -1,64 +1,42 @@
 import { LightningElement, wire, api } from 'lwc';
-import getPermitsByVendor from '@salesforce/apex/InvoiceRelatedPermitsController.getPermitsByVendor';
-import getVendorId from '@salesforce/apex/InvoiceRelatedPermitsController.getVendorId';
-import { NavigationMixin } from 'lightning/navigation'
+import getPermitsByVendorAcct from '@salesforce/apex/InvoiceRelatedPermitsController.getPermitsByVendorAcct';
 
 export default class InvoiceRelatedPermits extends LightningElement {
 
     @api recordId;
-    @api vendorId;
-    permits;
+    displayPermits;
 
     columns = [
+        { label: 'Name', fieldName: 'Name', type: 'text' },
         { label: 'Created Date', fieldName: 'CreatedDate', type: 'date' },
-        { label: 'Name', fieldName: 'Name', type: 'text' }
+        { label: 'Link', fieldName: 'HrefLink', type: 'url', typeAttributes: { label: 'View Permit', target: '_blank' } }
     ];
 
     connectedCallback () {
-        this.getVendorIdLWC(this.recordId);
+        this.getPermitsByVendorAcctLWC( this.recordId );
     }
 
-    async getPermitsByVendorLWC ( id ) {
+    formattedDate ( date ) {
+        const formattedDate = new Date( date );
+        return formattedDate.toLocaleDateString();
+    }
+
+    async getPermitsByVendorAcctLWC ( id ) {
         try {
             const Id = id;
-            console.log( 'Vendor Id: ' + Id );
-            const permits = await getPermitsByVendor({ vendorId: Id });
+            console.log( 'record Id: ' + Id );
+            const permits = await getPermitsByVendorAcct( { recordId: Id } );
             console.table( permits );
-            return permits;
-        }
-        catch ( error ) {
-            console.log( error );
-        }
-    }
-
-    async getVendorIdLWC ( id ) {
-        try {
-            const Id = id;
-            console.log( 'Line 36 Record Id: ' + Id );
-            const vendorId = await getVendorId({ recordId: Id });
-            this.vendorId = vendorId;
-            console.log( 'Line 39 Vendor Id: ' + vendorId );
-            this.permits = await this.getPermitsByVendorLWC( vendorId );
-        }
-        catch ( error ) {
-            console.log( error );
-        }
-    }
-
-    handleClick ( event ) {
-        try {
-            const recordId = event.target
-            console.log( 'Record Id: ' + {recordId });
-            this[ NavigationMixin.GenerateUrl ]( {
-                type: 'standard__recordPage',
-                attributes: {
-                    recordId: recordId,
-                    actionName: 'view'
-                }
-            } )
-            .then( url => {
-                window.open( url, '_blank' )
-            } )
+            this.displayPermits = permits.map( ( m ) => {
+                const formattedDate = this.formattedDate( m.CreatedDate );
+                // console.log( 'Formatted Date: ' + formattedDate );
+                return {
+                    Id: m.Id,
+                    Name: m.Name,
+                    CreatedDate: m.CreatedDate,
+                    HrefLink: 'https://everstream.lightning.force.com/' + m.Id
+                };
+            } );
         }
         catch ( error ) {
             console.log( error );
