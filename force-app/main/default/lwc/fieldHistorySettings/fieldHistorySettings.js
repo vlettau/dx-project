@@ -1,22 +1,24 @@
 import { LightningElement, api, wire } from 'lwc';
+import { getRecord } from 'lightning/uiRecordApi';
 import { getObjectInfo } from 'lightning/uiObjectInfoApi';
 
 export default class FieldHistorySettings extends LightningElement {
+    @api recordId; // Dynamically receives the record ID
     objectApiName; // Holds the API name of the current record
-    objectLabel;
     fieldsInfo = []; // Stores the fields information
+    selectedFields = new Set(); // Tracks fields selected for tracking
 
-    @wire(getObjectInfo, { objectApiName: '$objectApiName' })
-    wiredObjectInfo({ data, error }) {
+    @wire(getRecord, { recordId: "$recordId" }) // Fetch record details
+    wiredRecord({ data, error }) {
+        
         if (data) {
-            this.objectLabel = data.label; // Get object label
-            console.log('Object Label:', this.objectLabel);
+            this.objectApiName = data.apiName; // Get object API name
         } else if (error) {
-            console.error('Error fetching object info:', error);
+            console.error('Error fetching record:', error);
         }
     }
 
-    @wire(getObjectInfo, { objectApiName: '$objectApiName' }) // Fetch object metadata
+    @wire(getObjectInfo, { objectApiName: this.objectApiName }) // Fetch object metadata
     wiredObjectInfo({ data, error }) {
         if (data) {
             this.fieldsInfo = [];
@@ -39,4 +41,16 @@ export default class FieldHistorySettings extends LightningElement {
             console.error('Error fetching object info:', error);
         }
     }
+
+    // Handle checkbox changes
+    handleCheckboxChange(event) {
+        const fieldId = event.target.dataset.id;
+        if (event.target.checked) {
+            this.selectedFields.add(fieldId);
+        } else {
+            this.selectedFields.delete(fieldId);
+        }
+        console.log('Selected fields:', Array.from(this.selectedFields));
+    }
+
 }
