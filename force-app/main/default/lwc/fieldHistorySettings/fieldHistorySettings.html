@@ -1,36 +1,37 @@
 <template>
-    <lightning-card title="Fields Information" icon-name="custom:custom63">
+    <lightning-card title="Field History Tracking Settings" icon-name="custom:custom63">
         <template if:true={objectApiName}>
             <p class="slds-var-p-horizontal_small">Object API Name: {objectApiName}</p>
         </template>
         <template if:true={fieldsInfo}>
-            <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped slds-table_hoverable slds-table_fixed-layout">
                 <thead>
                     <tr>
                         <th>Track</th>
                         <th>Field Name</th>
                         <th>Label</th>
-                        <th>Data Type</th>
-                        <th>Is Createable</th>
-                        <th>Is Required</th>
+                        <!-- <th>Data Type</th> -->
+                        <!-- <th>Is Createable</th>
+                        <th>Is Required</th> -->
                     </tr>
                 </thead>
                 <tbody>
                     <template for:each={fieldsInfo} for:item="field">
                         <tr key={field.fieldName}>
                             <!-- Checkbox column for tracking -->
-                            <td>
-                                <lightning-input type="checkbox" data-id={field.fieldName} onchange={handleCheckboxChange}></lightning-input>
+                            <td >
+                                <lightning-input type="checkbox" data-id={field.fieldName} onchange={handleCheckboxChange} checked={field.isTracked}></lightning-input>
                             </td>
                             <td>{field.fieldName}</td>
                             <td>{field.label}</td>
-                            <td>{field.dataType}</td>
-                            <td>{field.isCreateable}</td>
-                            <td>{field.isRequired}</td>
+                            <!-- <td>{field.dataType}</td> -->
+                            <!-- <td>{field.isCreateable}</td>
+                            <td>{field.isRequired}</td> -->
                         </tr>
                     </template>
                 </tbody>
             </table>
+            <lightning-button label="Save" onclick={saveFieldHistorySettings}></lightning-button>
         </template>
         <template if:false={fieldsInfo}>
             <p class="slds-var-p-horizontal_small">No fields to display.</p>
