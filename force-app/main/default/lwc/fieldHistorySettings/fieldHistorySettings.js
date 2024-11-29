@@ -1,5 +1,6 @@
 import { LightningElement, api, wire, track } from 'lwc'
-import { getRecord, createRecord, updateRecord } from 'lightning/uiRecordApi'
+import { getRecord, createRecord, updateRecord, getRecordNotifyChange } from 'lightning/uiRecordApi'
+import { getRelatedListRecords } from 'lightning/uiRelatedListApi'
 import { getObjectInfo } from 'lightning/uiObjectInfoApi'
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
 import getTrackedFields from '@salesforce/apex/FieldHistorySettingsController.getTrackedFields'
@@ -11,14 +12,14 @@ export default class FieldHistorySettings extends LightningElement {
 	@track fieldsInfo = []; // Stores the fields information
 	@track selectedFields = []; // Tracks fields selected for tracking
 	currentTrackedFields = [];
-	fieldsToRemoveFromTrackedFields = [];// Pulles fields already being tracked from record
 	hasSettingsRecord = false; // Tracks if the settings record exists
 	configRecordId = ''; // Holds the ID of the config record
+	fieldSet = new Set();
 
 	connectedCallback () {
-
 	}
 
+	//done
 	@wire( getRecord, { recordId: '$recordId', fields: [ 'objectApiName' ] } )
 	wiredRecord ( { data, error } ) {
 		if ( data ) {
@@ -42,6 +43,7 @@ export default class FieldHistorySettings extends LightningElement {
 			this.getTrackedFieldsLWC( this.objectApiName )
 				.then(
 					( trackedFields ) => {
+						console.log( 'trackedFields', trackedFields )
 						this.currentTrackedFields = trackedFields
 						this.hasSettingsRecord = this.currentTrackedFields.length > 0
 						console.log( 'tracked fields in wire: ', this.currentTrackedFields )
@@ -50,14 +52,18 @@ export default class FieldHistorySettings extends LightningElement {
 							if ( fields.hasOwnProperty( fieldName ) ) {
 								const field = fields[ fieldName ]
 								console.log( 'field', fieldName, this.currentTrackedFields.includes( fieldName ) )
+								if ( this.currentTrackedFields.includes( fieldName ) ) {
+									console.log( 'adding field to fieldSet', fieldName )
+									this.fieldSet.add( fieldName )
+								}
 								this.fieldsInfo.push( {
 									isTracked: this.currentTrackedFields.includes( fieldName ),
 									fieldName: fieldName,
 									label: field.label,
-								}
-								)
+								} )
 							}
 						}
+						console.log( 'fieldSet(after currentTrackedFields added): ', this.fieldSet )
 					}
 				)
 				.catch(
@@ -66,12 +72,25 @@ export default class FieldHistorySettings extends LightningElement {
 					}
 				)
 
-			console.log( 'fieldsInfo', this.fieldsInfo )
 		} else if ( error ) {
 			console.error( 'Error fetching object info:', error )
 		}
 	}
 
+	@wire( getRelatedListRecords, {
+		recordId: '$recordId',
+		relatedListId: 'Field_History__r',
+		fields: [ '	Field_Label__c', 'Original_Value__c','New_Value__c' ]
+	} )
+	wiredRelatedList ( { data, error } ) {
+		if ( data ) {
+			console.log( 'wiredRelatedList', data )
+		} else if ( error ) {
+			console.error( 'Error fetching related list:', error )
+		}
+	}
+
+	//done
 	async getTrackedFieldsLWC ( objectApiName ) {
 		try {
 			const data = await getTrackedFields( { objectApiName } )
@@ -89,8 +108,7 @@ export default class FieldHistorySettings extends LightningElement {
 			return []
 		}
 	}
-
-
+	// done
 	// Handle checkbox changes
 	handleCheckboxChange ( event ) {
 		event.preventDefault()
@@ -101,53 +119,42 @@ export default class FieldHistorySettings extends LightningElement {
 
 		if ( isTracked ) {
 			// Add the field to the selectedFields array if not already present
-			if ( !this.selectedFields.includes( fieldName ) ) {
-				this.selectedFields.push( fieldName )
-				console.log( 'added checked selectedFields', this.selectedFields )
+			if ( !this.fieldSet.has( fieldName ) ) {
+				this.fieldSet.add( fieldName )
+				console.log( 'added checked fieldSet', this.fieldSet )
+			} else {
+				console.log( 'field already in fieldSet', fieldName )
 			}
 		} else if ( !isTracked ) {
-			// Add field to be removed from tracked fields array
-			if ( !this.fieldsToRemoveFromTrackedFields.includes( fieldName ) ) {
-				this.fieldsToRemoveFromTrackedFields.push( fieldName )
-				console.log( 'removed unchecked fieldsToRemoveFromTrackedFields', this.fieldsToRemoveFromTrackedFields )
+			// remove field from tracked fields array
+			if ( this.fieldSet.has( fieldName ) ) {
+				this.fieldSet.delete( fieldName )
+				console.log( 'removed unchecked fieldSet', this.fieldSet )
 			} else {
-				console.log( 'field already in fieldsToRemoveFromTrackedFields', fieldName )
+				console.log( 'field not in fieldSet', fieldName )
 			}
 
 		}
-		const updatedSelectedFields = this.selectedFields.filter( field => !this.fieldsToRemoveFromTrackedFields.includes( field ) )
-		console.log( 'Updated selectedFields:', JSON.stringify( updatedSelectedFields ) )
+		console.log( 'fieldSet(after handleCheckboxChange): ', this.fieldSet )
 	}
 
+	// next step to fix: saveFieldHistorySettings
 	saveFieldHistorySettings ( event ) {
 		event.preventDefault()
-		console.log( 'saveFieldHistorySettings fields:', JSON.stringify( this.selectedFields ) )
-
-		// Ensure currentTrackedFields is parsed properly
-		let parsedTrackedFields = []
-		try {
-			parsedTrackedFields = Array.isArray( this.currentTrackedFields )
-				? this.currentTrackedFields
-				: JSON.parse( this.currentTrackedFields || '[]' )
-		} catch ( error ) {
-			console.error( 'Error parsing currentTrackedFields:', error )
-		}
-
-		// Merge and deduplicate fields
-		console.log( 'parsedTrackedFields', parsedTrackedFields )
-		console.log( 'this.selectedFields', this.selectedFields )
-		const mergedFields = [ ...new Set( [ ...parsedTrackedFields, ...this.selectedFields ] ) ]
+		console.log( 'fieldSet to save:',  this.fieldSet  )
+		console.log( 'this.fieldSet', this.fieldSet )
+		const mergedFields = [ ...this.fieldSet ] 
 		console.log( 'mergedFields', mergedFields )
-
+		// works gtg
 		// Prepare fields for the update or create
 		const fields = {}
 		fields.Object_API_Name__c = this.objectApiName
 		fields.Tracked_Fields_Data__c = JSON.stringify( mergedFields ) // Store merged fields as a JSON string
-		console.log( 'fields', JSON.stringify( { fields } ) )
+		console.log( 'fields', { fields } )
 		if ( this.hasSettingsRecord ) {
 			// If the record exists, add the Id field to update the record
 			fields.Id = this.configRecordId
-			console.log( 'recordInput for update:', JSON.stringify( { fields } ) )
+			console.log( 'recordInput for update:', { fields } )
 
 			// Update the record
 			updateRecord( { fields } )
@@ -176,10 +183,7 @@ export default class FieldHistorySettings extends LightningElement {
 				} )
 		}
 	}
-
-
-
-
+	// done
 	// Utility method to display toast notifications
 	showToast ( title, message, variant ) {
 		const event = new ShowToastEvent(
@@ -193,8 +197,10 @@ export default class FieldHistorySettings extends LightningElement {
 	}
 
 	// handle when record is saved
-	handleRecordSaved ( event ) {
-		console.log( 'Record saved:', event )
+	handleSave ( ) {
+		console.log( 'Record save detected:', )
+		getRecordNotifyChange( { recordId: this.recordId } )
+		console.log( 'this.fieldSet', this.fieldSet )
 
 	}
 
