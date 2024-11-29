@@ -30,7 +30,7 @@ export default class FieldHistorySettings extends LightningElement {
 			console.error( 'Error fetching record:', error )
 		}
 	}
-
+	// done
 	@wire( getObjectInfo, { objectApiName: '$objectApiName' } ) // Fetch object metadata
 	wiredObjectInfo ( { data, error } ) {
 		if ( data ) {
@@ -80,7 +80,7 @@ export default class FieldHistorySettings extends LightningElement {
 	@wire( getRelatedListRecords, {
 		recordId: '$recordId',
 		relatedListId: 'Field_History__r',
-		fields: [ '	Field_Label__c', 'Original_Value__c','New_Value__c' ]
+		fields: [ 'Field_History__r.Field_Label__c', 'Field_History__r.Original_Value__c','Field_History__r.New_Value__c' ]
 	} )
 	wiredRelatedList ( { data, error } ) {
 		if ( data ) {
@@ -195,14 +195,5 @@ export default class FieldHistorySettings extends LightningElement {
 		)
 		this.dispatchEvent( event )
 	}
-
-	// handle when record is saved
-	handleSave ( ) {
-		console.log( 'Record save detected:', )
-		getRecordNotifyChange( { recordId: this.recordId } )
-		console.log( 'this.fieldSet', this.fieldSet )
-
-	}
-
 
 }
