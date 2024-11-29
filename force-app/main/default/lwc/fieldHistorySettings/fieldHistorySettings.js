@@ -10,16 +10,13 @@ export default class FieldHistorySettings extends LightningElement {
 	objectApiName = ''; // Holds the API name of the current record
 	@track fieldsInfo = []; // Stores the fields information
 	@track selectedFields = []; // Tracks fields selected for tracking
-	currentTrackedFields = []; // Pulles fields already being tracked from record
+	currentTrackedFields = [];
+	fieldsToRemoveFromTrackedFields = [];// Pulles fields already being tracked from record
 	hasSettingsRecord = false; // Tracks if the settings record exists
 	configRecordId = ''; // Holds the ID of the config record
 
 	connectedCallback () {
 
-	}
-
-	get trackedFields () {
-		return this.currentTrackedFields
 	}
 
 	@wire( getRecord, { recordId: '$recordId', fields: [ 'objectApiName' ] } )
@@ -28,8 +25,6 @@ export default class FieldHistorySettings extends LightningElement {
 			console.log( 'getRecord data', data )
 			this.objectApiName = data.apiName // Get object API name
 			// console.log( 'objectApiName', this.objectApiName )
-
-
 		} else if ( error ) {
 			console.error( 'Error fetching record:', error )
 		}
@@ -55,15 +50,11 @@ export default class FieldHistorySettings extends LightningElement {
 							if ( fields.hasOwnProperty( fieldName ) ) {
 								const field = fields[ fieldName ]
 								console.log( 'field', fieldName, this.currentTrackedFields.includes( fieldName ) )
-								this.fieldsInfo.push(
-									{
-										isTracked: this.currentTrackedFields.includes( fieldName ),
-										fieldName: fieldName,
-										label: field.label,
-										// dataType: field.dataType,
-										// isCreateable: field.createable,
-										// isRequired: !field.nillable,
-									}
+								this.fieldsInfo.push( {
+									isTracked: this.currentTrackedFields.includes( fieldName ),
+									fieldName: fieldName,
+									label: field.label,
+								}
 								)
 							}
 						}
@@ -104,29 +95,33 @@ export default class FieldHistorySettings extends LightningElement {
 	handleCheckboxChange ( event ) {
 		event.preventDefault()
 		const fieldName = event.target.dataset.id
+		console.log( 'handleCheckboxChange', fieldName )
 		const isTracked = event.target.checked
+		console.log( 'isTracked', isTracked )
 
 		if ( isTracked ) {
 			// Add the field to the selectedFields array if not already present
 			if ( !this.selectedFields.includes( fieldName ) ) {
 				this.selectedFields.push( fieldName )
+				console.log( 'added checked selectedFields', this.selectedFields )
 			}
-		} else {
-			// Remove the field from the selectedFields array if unchecked
-			this.selectedFields = this.selectedFields.filter( field => field !== fieldName )
-		}
+		} else if ( !isTracked ) {
+			// Add field to be removed from tracked fields array
+			if ( !this.fieldsToRemoveFromTrackedFields.includes( fieldName ) ) {
+				this.fieldsToRemoveFromTrackedFields.push( fieldName )
+				console.log( 'removed unchecked fieldsToRemoveFromTrackedFields', this.fieldsToRemoveFromTrackedFields )
+			} else {
+				console.log( 'field already in fieldsToRemoveFromTrackedFields', fieldName )
+			}
 
-		console.log( 'Updated selectedFields:', JSON.stringify( this.selectedFields ) )
+		}
+		const updatedSelectedFields = this.selectedFields.filter( field => !this.fieldsToRemoveFromTrackedFields.includes( field ) )
+		console.log( 'Updated selectedFields:', JSON.stringify( updatedSelectedFields ) )
 	}
 
 	saveFieldHistorySettings ( event ) {
 		event.preventDefault()
-		console.log( 'saveFieldHistorySettings fields:', this.selectedFields )
-		// Extract all currently checked fields from the UI
-		const checkboxes = this.template.querySelectorAll( 'input[type="checkbox"]:checked' )
-		const currentSelectedFields = Array.from( checkboxes ).map( ( checkbox ) => checkbox.dataset.id )
-
-		console.log( 'Currently selected fields from UI:', currentSelectedFields )
+		console.log( 'saveFieldHistorySettings fields:', JSON.stringify( this.selectedFields ) )
 
 		// Ensure currentTrackedFields is parsed properly
 		let parsedTrackedFields = []
@@ -139,13 +134,16 @@ export default class FieldHistorySettings extends LightningElement {
 		}
 
 		// Merge and deduplicate fields
+		console.log( 'parsedTrackedFields', parsedTrackedFields )
+		console.log( 'this.selectedFields', this.selectedFields )
 		const mergedFields = [ ...new Set( [ ...parsedTrackedFields, ...this.selectedFields ] ) ]
+		console.log( 'mergedFields', mergedFields )
 
 		// Prepare fields for the update or create
 		const fields = {}
 		fields.Object_API_Name__c = this.objectApiName
 		fields.Tracked_Fields_Data__c = JSON.stringify( mergedFields ) // Store merged fields as a JSON string
-
+		console.log( 'fields', JSON.stringify( { fields } ) )
 		if ( this.hasSettingsRecord ) {
 			// If the record exists, add the Id field to update the record
 			fields.Id = this.configRecordId
