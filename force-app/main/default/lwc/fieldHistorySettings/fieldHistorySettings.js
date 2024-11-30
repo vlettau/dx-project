@@ -1,5 +1,5 @@
 import { LightningElement, api, wire, track } from 'lwc'
-import { getRecord, createRecord, updateRecord, getRecordNotifyChange } from 'lightning/uiRecordApi'
+import { getRecord, createRecord, updateRecord } from 'lightning/uiRecordApi'
 import { getRelatedListRecords } from 'lightning/uiRelatedListApi'
 import { getObjectInfo } from 'lightning/uiObjectInfoApi'
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
@@ -8,7 +8,7 @@ import TRACKED_FIELDS_DATA from '@salesforce/schema/Field_History_Setting__c.Tra
 
 export default class FieldHistorySettings extends LightningElement {
 	@api recordId // Dynamically receives the record ID
-	objectApiName = ''; // Holds the API name of the current record
+	objectApiName // Holds the API name of the current record
 	@track fieldsInfo = []; // Stores the fields information
 	@track selectedFields = []; // Tracks fields selected for tracking
 	currentTrackedFields = [];
@@ -20,7 +20,7 @@ export default class FieldHistorySettings extends LightningElement {
 	}
 
 	//done
-	@wire( getRecord, { recordId: '$recordId', fields: [ 'objectApiName' ] } )
+	@wire( getRecord, { recordId: '$recordId', fields: '$fieldNames' , optionalFields: [ 'objectApiName' ] } )
 	wiredRecord ( { data, error } ) {
 		if ( data ) {
 			console.log( 'getRecord data', data )
@@ -30,6 +30,7 @@ export default class FieldHistorySettings extends LightningElement {
 			console.error( 'Error fetching record:', error )
 		}
 	}
+
 	// done
 	@wire( getObjectInfo, { objectApiName: '$objectApiName' } ) // Fetch object metadata
 	wiredObjectInfo ( { data, error } ) {
@@ -80,11 +81,12 @@ export default class FieldHistorySettings extends LightningElement {
 	@wire( getRelatedListRecords, {
 		recordId: '$recordId',
 		relatedListId: 'Field_History__r',
-		fields: [ 'Field_History__r.Field_Label__c', 'Field_History__r.Original_Value__c','Field_History__r.New_Value__c' ]
-	} )
+		fields: [ 'Field_History__c.Field_Label__c', 'Field_History__c.Original_Value__c','Field_History__c.New_Value__c' ]
+	} )		
 	wiredRelatedList ( { data, error } ) {
 		if ( data ) {
-			console.log( 'wiredRelatedList', data )
+			this.relatedListRecords = data
+			console.log( 'wiredRelatedList', this.relatedListRecords )
 		} else if ( error ) {
 			console.error( 'Error fetching related list:', error )
 		}
@@ -108,6 +110,7 @@ export default class FieldHistorySettings extends LightningElement {
 			return []
 		}
 	}
+
 	// done
 	// Handle checkbox changes
 	handleCheckboxChange ( event ) {
@@ -183,6 +186,7 @@ export default class FieldHistorySettings extends LightningElement {
 				} )
 		}
 	}
+
 	// done
 	// Utility method to display toast notifications
 	showToast ( title, message, variant ) {
