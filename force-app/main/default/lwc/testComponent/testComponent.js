@@ -21,18 +21,18 @@ export default class TestComponent extends LightningElement {
         this.getTrackedFieldsLWC( this.objectApiName )
             .then( trackedFields => {
                 console.log( 'trackedFields', trackedFields )
-                this.trackedFields = trackedFields
+                this.trackedFields = [ ...trackedFields ]
+                console.log( 'this.trackedFields', typeof this.trackedFields )
                 console.log( 'this.trackedFields', this.trackedFields )
-                console.log( 'this.trackedFields IS aRRAY', Array.isArray( this.trackedFields ) )
-                
-                
+
+
             } )
             .catch( error => {
                 console.log( 'connectedCallback getTrackedFieldsLWC error', error )
             } )
     }
 
-    @wire( getRecord, { recordId: '$recordId', fields: '$trackedFields'} )
+    @wire( getRecord, { recordId: '$recordId', fields: '$trackedFields' } )
     wiredRecord ( { data, error } ) {
         if ( data ) {
             console.log( 'wiredRecord getRecord data', data )
