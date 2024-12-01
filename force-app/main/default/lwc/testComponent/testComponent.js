@@ -8,7 +8,7 @@ export default class TestComponent extends LightningElement {
     @api recordId // Dynamically receives the record ID
     @api objectApiName // Holds the API name of the current record
     @track fieldNames
-    @track trackedFields = []
+    @track trackedFields
     // @track trackedField = {
     //     fieldName: '',
     //     fieldValue: '',
@@ -22,23 +22,22 @@ export default class TestComponent extends LightningElement {
             .then( trackedFields => {
                 console.log( 'trackedFields', trackedFields )
                 this.trackedFields = trackedFields
-                this.trackedFields.forEach( field => {
-                    console.log( 'field', field )
-                    let fieldName = this.objectApiName + '.' + field.fieldApiName
-                    this.fieldNames.push( fieldName )
-                } )
+                console.log( 'this.trackedFields', this.trackedFields )
+                console.log( 'this.trackedFields IS aRRAY', Array.isArray( this.trackedFields ) )
+                
+                
             } )
             .catch( error => {
-                console.log( 'error', error )
+                console.log( 'connectedCallback getTrackedFieldsLWC error', error )
             } )
     }
 
-    @wire( getRecord, { recordId: '$recordId', fields: '$fieldNames'} )
+    @wire( getRecord, { recordId: '$recordId', fields: '$trackedFields'} )
     wiredRecord ( { data, error } ) {
         if ( data ) {
-            console.log( 'data', data )
+            console.log( 'wiredRecord getRecord data', data )
         } else if ( error ) {
-            console.log( 'error', error )
+            console.log( 'wiredRecord getRecord error', error )
         }
     }
 
