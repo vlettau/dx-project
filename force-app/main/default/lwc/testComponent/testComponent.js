@@ -11,7 +11,6 @@ export default class TestComponent extends LightningElement {
     @track fieldNames = []
     @track trackedFields
     @track trackedFieldsValues
-    @track allFieldsValues
     // @track trackedField = {
     //     fieldName: '',
     //     fieldValue: '',
@@ -41,9 +40,11 @@ export default class TestComponent extends LightningElement {
             for (const fieldName in fields) {
                 if (fields.hasOwnProperty(fieldName)) {
                     const field = this.objectApiName + '.' + fields[fieldName].apiName
+                    console.log('field', field)
                     this.fieldNames.push(field)
                 }
             }
+            console.log('this.fieldNames', this.fieldNames)
             console.log('wiredObjectInfo data', data)
         } else if (error) {
             console.log('wiredObjectInfo error', error)
@@ -54,10 +55,6 @@ export default class TestComponent extends LightningElement {
     wiredRecord({ data, error }) {
         if (data) {
             console.log('wiredRecord getRecord data', data)
-            this.allFieldsValues = data.fields.forEach((field) => {
-                console.log('field', field)
-            })
-            console.log('this.allFieldsValues', this.allFieldsValues)
         } else if (error) {
             console.log('wiredRecord getRecord error', error)
         }
@@ -70,9 +67,8 @@ export default class TestComponent extends LightningElement {
                 const trackedFields = data[0]?.[TRACKED_FIELDS_DATA.fieldApiName] || []
                 this.configRecordId = data[0]?.Id
                 const trackecFieldsValues = await getTrackedFieldsValues({ objectApiName: this.objectApiName, fieldNames: trackedFields, recordId: this.recordId })
-                this.trackedFieldsValues = trackecFieldsValues
-                console.log('trackedFieldsValues', trackedFieldsValues)
-                console.log('this.trackedFieldsValues', this.trackedFieldsValues)
+                this.trackedFieldsValues = trackecFieldsValues.Account__c.value
+                console.log('tracked fields Account: ', this.trackedFieldsValues)
                 return trackedFields
             } else {
                 console.warn('No tracked fields data found.')
@@ -83,6 +79,4 @@ export default class TestComponent extends LightningElement {
             return []
         }
     }
-
-
 }
