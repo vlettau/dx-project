@@ -17,37 +17,43 @@ export default class TestComponent extends LightningElement {
     //     createdAt: ''
     // }
 
-    get fieldNamesToPass () {
-        const names = this.fieldNames.map( field => field.fieldApiName )
-        console.log( 'fieldNamesToPass', names )
-        return names
-    }
-
     connectedCallback () {
         console.log( 'recordId', this.recordId )
         console.log( 'objectApiName', this.objectApiName )
         this.getTrackedFieldsLWC( this.objectApiName )
-            .then( trackedFields => {
-
-                this.trackedFields = trackedFields
-
-            } )
-            .catch( error => {
-                console.log( 'connectedCallback getTrackedFieldsLWC error', error )
-            } )
+            .then(
+                trackedFields => {
+                    this.trackedFields = trackedFields
+                }
+            )
+            .catch(
+                error => {
+                    console.log( 'connectedCallback getTrackedFieldsLWC error', error )
+                }
+            )
     }
 
     @wire( getObjectInfo, { objectApiName: '$objectApiName' } ) // Fetch object metadata
     wiredObjectInfo ( { data, error } ) {
         if ( data ) {
-            this.fieldNames = data.fields
+            const fields = data.fields
+            for ( const fieldName in fields ) {
+                if ( fields.hasOwnProperty( fieldName ) ) {
+                    if ( this.trackedFields.includes( fieldName ) ) {
+                        const field = this.objectApiName + '.' + fields[ fieldName ].apiName
+                        console.log( 'field', field )
+                        this.fieldNames.push( field )
+                        console.log( 'this.fieldNames', this.fieldNames )
+                    }
+                }
+            }
             console.log( 'wiredObjectInfo data', data )
         } else if ( error ) {
             console.log( 'wiredObjectInfo error', error )
         }
     }
 
-    @wire( getRecord, { recordId: '$recordId', fields: '$fieldNamesToPass' } )
+    @wire( getRecord, { recordId: '$recordId', fields: '$fieldNames' } )
     wiredRecord ( { data, error } ) {
         if ( data ) {
             console.log( 'wiredRecord getRecord data', data )
@@ -62,11 +68,8 @@ export default class TestComponent extends LightningElement {
             if ( data && data.length > 0 ) {
                 const trackedFields = data[ 0 ]?.[ TRACKED_FIELDS_DATA.fieldApiName ] || []
                 this.configRecordId = data[ 0 ]?.Id
-
                 const trackecFieldsValues = await getTrackedFieldsValues( { objectApiName: this.objectApiName, fieldNames: trackedFields, recordId: this.recordId } )
-
                 this.trackedFieldsValues = trackecFieldsValues
-
                 return trackedFields
             } else {
                 console.warn( 'No tracked fields data found.' )
