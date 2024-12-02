@@ -8,19 +8,20 @@ import { getObjectInfo } from 'lightning/uiObjectInfoApi'
 export default class TestComponent extends LightningElement {
     @api recordId // Dynamically receives the record ID
     @api objectApiName // Holds the API name of the current record
-    @track fieldNames
+    @track fieldNames = []
     @track trackedFields
     @track trackedFieldsValues
+    @track allFieldsValues
     // @track trackedField = {
     //     fieldName: '',
     //     fieldValue: '',
     //     createdAt: ''
     // }
 
-    connectedCallback () {
-        console.log( 'recordId', this.recordId )
-        console.log( 'objectApiName', this.objectApiName )
-        this.getTrackedFieldsLWC( this.objectApiName )
+    connectedCallback() {
+        console.log('recordId', this.recordId)
+        console.log('objectApiName', this.objectApiName)
+        this.getTrackedFieldsLWC(this.objectApiName)
             .then(
                 trackedFields => {
                     this.trackedFields = trackedFields
@@ -28,56 +29,60 @@ export default class TestComponent extends LightningElement {
             )
             .catch(
                 error => {
-                    console.log( 'connectedCallback getTrackedFieldsLWC error', error )
+                    console.log('connectedCallback getTrackedFieldsLWC error', error)
                 }
             )
     }
 
-    @wire( getObjectInfo, { objectApiName: '$objectApiName' } ) // Fetch object metadata
-    wiredObjectInfo ( { data, error } ) {
-        if ( data ) {
+    @wire(getObjectInfo, { objectApiName: '$objectApiName' }) // Fetch object metadata
+    wiredObjectInfo({ data, error }) {
+        if (data) {
             const fields = data.fields
-            for ( const fieldName in fields ) {
-                if ( fields.hasOwnProperty( fieldName ) ) {
-                    if ( this.trackedFields.includes( fieldName ) ) {
-                        const field = this.objectApiName + '.' + fields[ fieldName ].apiName
-                        console.log( 'field', field )
-                        this.fieldNames.push( field )
-                        console.log( 'this.fieldNames', this.fieldNames )
-                    }
+            for (const fieldName in fields) {
+                if (fields.hasOwnProperty(fieldName)) {
+                    const field = this.objectApiName + '.' + fields[fieldName].apiName
+                    this.fieldNames.push(field)
                 }
             }
-            console.log( 'wiredObjectInfo data', data )
-        } else if ( error ) {
-            console.log( 'wiredObjectInfo error', error )
+            console.log('wiredObjectInfo data', data)
+        } else if (error) {
+            console.log('wiredObjectInfo error', error)
         }
     }
 
-    @wire( getRecord, { recordId: '$recordId', fields: '$fieldNames' } )
-    wiredRecord ( { data, error } ) {
-        if ( data ) {
-            console.log( 'wiredRecord getRecord data', data )
-        } else if ( error ) {
-            console.log( 'wiredRecord getRecord error', error )
+    @wire(getRecord, { recordId: '$recordId', fields: '$fieldNames' })
+    wiredRecord({ data, error }) {
+        if (data) {
+            console.log('wiredRecord getRecord data', data)
+            this.allFieldsValues = data.fields.forEach((field) => {
+                console.log('field', field)
+            })
+            console.log('this.allFieldsValues', this.allFieldsValues)
+        } else if (error) {
+            console.log('wiredRecord getRecord error', error)
         }
     }
 
-    async getTrackedFieldsLWC ( objectApiName ) {
+    async getTrackedFieldsLWC(objectApiName) {
         try {
-            const data = await getTrackedFields( { objectApiName } )
-            if ( data && data.length > 0 ) {
-                const trackedFields = data[ 0 ]?.[ TRACKED_FIELDS_DATA.fieldApiName ] || []
-                this.configRecordId = data[ 0 ]?.Id
-                const trackecFieldsValues = await getTrackedFieldsValues( { objectApiName: this.objectApiName, fieldNames: trackedFields, recordId: this.recordId } )
+            const data = await getTrackedFields({ objectApiName })
+            if (data && data.length > 0) {
+                const trackedFields = data[0]?.[TRACKED_FIELDS_DATA.fieldApiName] || []
+                this.configRecordId = data[0]?.Id
+                const trackecFieldsValues = await getTrackedFieldsValues({ objectApiName: this.objectApiName, fieldNames: trackedFields, recordId: this.recordId })
                 this.trackedFieldsValues = trackecFieldsValues
+                console.log('trackedFieldsValues', trackedFieldsValues)
+                console.log('this.trackedFieldsValues', this.trackedFieldsValues)
                 return trackedFields
             } else {
-                console.warn( 'No tracked fields data found.' )
+                console.warn('No tracked fields data found.')
                 return []
             }
-        } catch ( error ) {
-            console.error( 'Error fetching tracked fields:', error )
+        } catch (error) {
+            console.error('Error fetching tracked fields:', error)
             return []
         }
     }
+
+
 }
