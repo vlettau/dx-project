@@ -17,17 +17,19 @@ export default class TestComponent extends LightningElement {
     //     createdAt: ''
     // }
 
+    get fieldNamesToPass () {
+        const names = this.fieldNames.map( field => field.fieldApiName )
+        console.log( 'fieldNamesToPass', names )
+        return names
+    }
+
     connectedCallback () {
         console.log( 'recordId', this.recordId )
         console.log( 'objectApiName', this.objectApiName )
         this.getTrackedFieldsLWC( this.objectApiName )
             .then( trackedFields => {
-                console.log( '24: trackedFields', trackedFields )
-                this.trackedFields = trackedFields
 
-                console.log( '27: this.trackedFields', typeof this.trackedFields )
-                console.log( '28: this.trackedFields', this.trackedFields )
-                console.log( '30: this.trackedFieldsValues', this.trackedFieldsValues )
+                this.trackedFields = trackedFields
 
             } )
             .catch( error => {
@@ -45,7 +47,7 @@ export default class TestComponent extends LightningElement {
         }
     }
 
-    @wire( getRecord, { recordId: '$recordId', fields: '$fieldNames' } )
+    @wire( getRecord, { recordId: '$recordId', fields: '$fieldNamesToPass' } )
     wiredRecord ( { data, error } ) {
         if ( data ) {
             console.log( 'wiredRecord getRecord data', data )
@@ -60,14 +62,11 @@ export default class TestComponent extends LightningElement {
             if ( data && data.length > 0 ) {
                 const trackedFields = data[ 0 ]?.[ TRACKED_FIELDS_DATA.fieldApiName ] || []
                 this.configRecordId = data[ 0 ]?.Id
-                console.log( 'getTrackedFieldsLWC data:', data )
+
                 const trackecFieldsValues = await getTrackedFieldsValues( { objectApiName: this.objectApiName, fieldNames: trackedFields, recordId: this.recordId } )
-                console.log( 'trackecFieldsValues', JSON.parse( JSON.stringify( trackecFieldsValues ) ))
+
                 this.trackedFieldsValues = trackecFieldsValues
-                const rawData = JSON.parse( trackedFields )
-                console.log( 'rawData', rawData )
-                console.log( '68: this.trackedFieldsValues', this.trackedFieldsValues )
-                console.log( '69: typeof trackedFields', typeof trackedFields )
+
                 return trackedFields
             } else {
                 console.warn( 'No tracked fields data found.' )
