@@ -62,9 +62,6 @@ export default class TestComponent extends LightningElement {
             for ( const field in fields ) {
                 console.log( 'this.objectApiName', this.objectApiName )
                 console.log( 'field', field )
-                //! TODO: add label to getFieldHistoryRecordLWC parameters to add to the fieldHistoryRecords and related list display
-                console.log( 'label', field.label )
-                //!======================================================
                 console.log( 'fields[ field ]', fields[ field ].value )
                 console.log( 'this.recordId', this.recordId )
                 this.getFieldHistoryRecordLWC( this.objectApiName, field, fields[ field ].value, this.recordId )

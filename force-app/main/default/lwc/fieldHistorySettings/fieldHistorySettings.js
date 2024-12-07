@@ -75,7 +75,7 @@ export default class FieldHistorySettings extends LightningElement {
 	@wire( getRelatedListRecords, {
 		recordId: '$recordId',
 		relatedListId: 'Field_History__r',
-		fields: [ 'Field_History__c.CreatedDate', 'Field_History__c.Original_Value__c', 'Field_History__c.New_Value__c' ]
+		fields: [ 'CreatedDate', 'Original_Value__c', 'New_Value__c' ]
 	} )
 	wiredRelatedList ( { data, error } ) {
 		if ( data ) {
