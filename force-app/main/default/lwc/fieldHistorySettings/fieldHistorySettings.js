@@ -4,48 +4,42 @@ import { getRelatedListRecords } from 'lightning/uiRelatedListApi'
 import { getObjectInfo } from 'lightning/uiObjectInfoApi'
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
 import getTrackedFields from '@salesforce/apex/FieldHistorySettingsController.getTrackedFields'
+import getTrackedFieldsValues from '@salesforce/apex/FieldHistorySettingsController.getTrackedFieldsValues'
 import TRACKED_FIELDS_DATA from '@salesforce/schema/Field_History_Setting__c.Tracked_Fields_Data__c'
 
 export default class FieldHistorySettings extends LightningElement {
 	@api recordId // Dynamically receives the record ID
-	objectApiName // Holds the API name of the current record
+	@api objectApiName // Holds the API name of the current record
 	@track fieldsInfo = []; // Stores the fields information
 	@track selectedFields = []; // Tracks fields selected for tracking
-	currentTrackedFields = [];
-	hasSettingsRecord = false; // Tracks if the settings record exists
-	configRecordId = ''; // Holds the ID of the config record
-	fieldSet = new Set();
+	@track currentTrackedFields = [];
+	@track hasSettingsRecord = false; // Tracks if the settings record exists
+	@track configRecordId = ''; // Holds the ID of the config record
+	@track fieldSet = new Set();
+	@track fieldNames = [];
 
 	connectedCallback () {
+		// this.getTrackedFieldsLWC( this.objectApiName )
+		// 	.then(
+		// 		( trackedFields ) => {
+		// 			this.fieldNames = trackedFields
+		// 		}
+		// 	)
 	}
 
-	//done
-	@wire( getRecord, { recordId: '$recordId', fields: '$fieldNames' , optionalFields: [ 'objectApiName' ] } )
-	wiredRecord ( { data, error } ) {
-		if ( data ) {
-			console.log( 'getRecord data', data )
-			this.objectApiName = data.apiName // Get object API name
-			// console.log( 'objectApiName', this.objectApiName )
-		} else if ( error ) {
-			console.error( 'Error fetching record:', error )
-		}
-	}
-
-	// done
 	@wire( getObjectInfo, { objectApiName: '$objectApiName' } ) // Fetch object metadata
 	wiredObjectInfo ( { data, error } ) {
 		if ( data ) {
 			this.fieldsInfo = []
 			const fields = data.fields
 			console.log( 'fields', fields )
-			/**
-			 ** TODO: Use the trackedFields array to add checkmarks to the fieldsInfo array
-			 */
+			console.log( 'wiredObjectInfo', data )
 			this.getTrackedFieldsLWC( this.objectApiName )
 				.then(
 					( trackedFields ) => {
 						console.log( 'trackedFields', trackedFields )
 						this.currentTrackedFields = trackedFields
+						this.fieldNames = trackedFields
 						this.hasSettingsRecord = this.currentTrackedFields.length > 0
 						console.log( 'tracked fields in wire: ', this.currentTrackedFields )
 						// Process and store field metadata
@@ -81,25 +75,27 @@ export default class FieldHistorySettings extends LightningElement {
 	@wire( getRelatedListRecords, {
 		recordId: '$recordId',
 		relatedListId: 'Field_History__r',
-		fields: [ 'Field_History__c.Field_Label__c', 'Field_History__c.Original_Value__c','Field_History__c.New_Value__c' ]
-	} )		
+		fields: [ 'Field_History__c.CreatedDate', 'Field_History__c.Original_Value__c', 'Field_History__c.New_Value__c' ]
+	} )
 	wiredRelatedList ( { data, error } ) {
 		if ( data ) {
-			this.relatedListRecords = data
-			console.log( 'wiredRelatedList', this.relatedListRecords )
+			const relatedListRecords = data
+			console.log( 'wiredRelatedList', relatedListRecords )
 		} else if ( error ) {
 			console.error( 'Error fetching related list:', error )
 		}
 	}
 
-	//done
 	async getTrackedFieldsLWC ( objectApiName ) {
 		try {
 			const data = await getTrackedFields( { objectApiName } )
 			if ( data && data.length > 0 ) {
 				const trackedFields = data[ 0 ]?.[ TRACKED_FIELDS_DATA.fieldApiName ] || []
+				console.log( 'trackedFields', trackedFields )
 				this.configRecordId = data[ 0 ]?.Id
 				console.log( 'getTrackedFieldsLWC data:', data )
+				const trackecFieldsValues = await getTrackedFieldsValues( { objectApiName: this.objectApiName, fieldNames: trackedFields, recordId: this.recordId } )
+				console.log( 'trackecFieldsValues', trackecFieldsValues )
 				return trackedFields
 			} else {
 				console.warn( 'No tracked fields data found.' )
@@ -111,7 +107,6 @@ export default class FieldHistorySettings extends LightningElement {
 		}
 	}
 
-	// done
 	// Handle checkbox changes
 	handleCheckboxChange ( event ) {
 		event.preventDefault()
@@ -144,9 +139,9 @@ export default class FieldHistorySettings extends LightningElement {
 	// next step to fix: saveFieldHistorySettings
 	saveFieldHistorySettings ( event ) {
 		event.preventDefault()
-		console.log( 'fieldSet to save:',  this.fieldSet  )
+		console.log( 'fieldSet to save:', this.fieldSet )
 		console.log( 'this.fieldSet', this.fieldSet )
-		const mergedFields = [ ...this.fieldSet ] 
+		const mergedFields = [ ...this.fieldSet ]
 		console.log( 'mergedFields', mergedFields )
 		// works gtg
 		// Prepare fields for the update or create
@@ -187,7 +182,6 @@ export default class FieldHistorySettings extends LightningElement {
 		}
 	}
 
-	// done
 	// Utility method to display toast notifications
 	showToast ( title, message, variant ) {
 		const event = new ShowToastEvent(

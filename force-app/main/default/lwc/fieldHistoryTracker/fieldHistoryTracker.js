@@ -5,7 +5,7 @@ import getTrackedFieldsValues from '@salesforce/apex/FieldHistorySettingsControl
 import TRACKED_FIELDS_DATA from '@salesforce/schema/Field_History_Setting__c.Tracked_Fields_Data__c'
 import getFieldHistoryRecord from '@salesforce/apex/FieldHistorySettingsController.getFieldHistoryRecord'
 
-export default class TestComponent extends LightningElement {
+export default class FieldHistoryTracker extends LightningElement {
     @api recordId // Dynamically receives the record ID
     @api objectApiName // Holds the API name of the current record
     @track fieldNames = [];
@@ -62,9 +62,6 @@ export default class TestComponent extends LightningElement {
             for ( const field in fields ) {
                 console.log( 'this.objectApiName', this.objectApiName )
                 console.log( 'field', field )
-                //! TODO: add label to getFieldHistoryRecordLWC parameters to add to the fieldHistoryRecords and related list display
-                console.log( 'label', field.label )
-                //!======================================================
                 console.log( 'fields[ field ]', fields[ field ].value )
                 console.log( 'this.recordId', this.recordId )
                 this.getFieldHistoryRecordLWC( this.objectApiName, field, fields[ field ].value, this.recordId )
@@ -114,5 +111,4 @@ export default class TestComponent extends LightningElement {
             return []
         }
     }
-
 }
