@@ -1,4 +1,7 @@
 <template>
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading"></lightning-spinner>
+    </template>
     <template
         for:each={trackedFieldApiNames}
         for:item="item"

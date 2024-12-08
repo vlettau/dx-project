@@ -16,8 +16,12 @@ public with sharing class FieldHistorySettingsController {
         System.debug('fieldNames: ' + fieldNames);
         System.debug('recordId: ' + recordId);
 
+        if ( fieldNames.isEmpty() ) {
+            return null;
+        }
+
         // Build the dynamic SOQL query string without directly inserting variables
-        String soqlQuery = 'SELECT Id,' + String.join(fieldNames, ',') + ' FROM ' + objectApiName + ' WHERE Id = :recordId';
+        String soqlQuery = 'SELECT ' + String.join(fieldNames, ',') + ' FROM ' + objectApiName + ' WHERE Id = :recordId';
         System.debug('soqlQuery: ' + soqlQuery);
 
         // Execute the dynamic SOQL query
@@ -85,9 +89,10 @@ public with sharing class FieldHistorySettingsController {
     @AuraEnabled
     public static List<Field_History__c> getFieldHistoryRecords(String recordId) {
         List<Field_History__c> fhrs = [SELECT Id, Field_API_Name__c, New_Value__c, Original_Value__c, 
-                                              Object_API_Name__c
+                                              CreatedBy.Name, CreatedDate, Object_API_Name__c
                                        FROM Field_History__c
-                                       WHERE Record_Id__c = :recordId];
+                                       WHERE Record_Id__c = :recordId
+                                       ORDER BY CreatedDate DESC];
         return fhrs;
     }
 
