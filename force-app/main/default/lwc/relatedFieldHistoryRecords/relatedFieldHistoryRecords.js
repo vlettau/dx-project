@@ -1,15 +1,23 @@
 import { LightningElement, api, wire, track } from 'lwc'
 import { getRelatedListRecords } from 'lightning/uiRelatedListApi'
-import getFieldHistoryRecords from '@salesforce/apex/FieldHistorySettingsController.getFieldHistoryRecords'
+
 export default class RelatedFieldHistoryRecords extends LightningElement {
 
     @api recordId
     @track relatedListRecords = []
 
     @wire( getRelatedListRecords, {
-        recordId: '$recordId',
-        relatedListId: 'Field_History__r',
-        fields: [ 'CreatedDate', 'CreatedBy.Name', 'Field_API_Name__c', 'Original_Value__c', 'New_Value__c' ]
+        parentRecordId: '$recordId',
+        relatedListId: 'Fields_Historys__r',
+        fields: [
+            'Field_History__c.CreatedDate',
+            'Field_History__c.CreatedBy.Name',
+            'Field_History__c.Field_API_Name__c',
+            'Field_History__c.Original_Value__c',
+            'Field_History__c.New_Value__c'
+        ],
+        sortBy: 'Field_History__c.CreatedDate',
+        sortDirection: 'DESC'
     } )
     wiredRelatedList ( { data, error } ) {
         if ( data ) {
