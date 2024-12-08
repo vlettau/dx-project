@@ -72,20 +72,6 @@ export default class FieldHistorySettings extends LightningElement {
 		}
 	}
 
-	@wire( getRelatedListRecords, {
-		recordId: '$recordId',
-		relatedListId: 'Field_History__r',
-		fields: [ 'CreatedDate', 'Original_Value__c', 'New_Value__c' ]
-	} )
-	wiredRelatedList ( { data, error } ) {
-		if ( data ) {
-			const relatedListRecords = data
-			console.log( 'wiredRelatedList', relatedListRecords )
-		} else if ( error ) {
-			console.error( 'Error fetching related list:', error )
-		}
-	}
-
 	async getTrackedFieldsLWC ( objectApiName ) {
 		try {
 			const data = await getTrackedFields( { objectApiName } )
