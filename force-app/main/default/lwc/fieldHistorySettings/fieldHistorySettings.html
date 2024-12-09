@@ -1,10 +1,20 @@
 <template>
-    <lightning-card title="Field History Tracking Settings" icon-name="custom:custom63">
+    <c-related-field-history-records
+        record-id={recordId}
+        object-api-name={objectApiName}
+        fields-info={fieldsInfo}
+    ></c-related-field-history-records>
+    <lightning-card
+        title="Field History Tracking Settings"
+        icon-name="custom:custom63"
+    >
         <template if:true={objectApiName}>
             <p class="slds-var-p-horizontal_small">Object API Name: {objectApiName}</p>
         </template>
         <template if:true={fieldsInfo}>
-            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped slds-table_hoverable slds-table_fixed-layout">
+            <table
+                class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped slds-table_hoverable slds-table_fixed-layout"
+            >
                 <thead>
                     <tr>
                         <th>Track</th>
@@ -16,11 +26,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <template for:each={fieldsInfo} for:item="field">
+                    <template
+                        for:each={fieldsInfo}
+                        for:item="field"
+                    >
                         <tr key={field.fieldName}>
                             <!-- Checkbox column for tracking -->
-                            <td >
-                                <lightning-input type="checkbox" data-id={field.fieldName} onchange={handleCheckboxChange} checked={field.isTracked}></lightning-input>
+                            <td>
+                                <lightning-input
+                                    type="checkbox"
+                                    data-id={field.fieldName}
+                                    onchange={handleCheckboxChange}
+                                    checked={field.isTracked}
+                                ></lightning-input>
                             </td>
                             <td>{field.fieldName}</td>
                             <td>{field.label}</td>
@@ -31,7 +49,10 @@
                     </template>
                 </tbody>
             </table>
-            <lightning-button label="Save" onclick={saveFieldHistorySettings}></lightning-button>
+            <lightning-button
+                label="Save"
+                onclick={saveFieldHistorySettings}
+            ></lightning-button>
         </template>
         <template if:false={fieldsInfo}>
             <p class="slds-var-p-horizontal_small">No fields to display.</p>

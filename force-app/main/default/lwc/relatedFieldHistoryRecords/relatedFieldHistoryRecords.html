@@ -1,23 +1,21 @@
 <template>
     <lightning-card title="Field History">
         <div class="slds-p-around_medium">
-            <template if:true={relatedListRecords}>
-                <template
-                    for:each={relatedListRecords}
-                    for:item="record"
-                >
-                    <div
-                        key={record.Id}
-                        class="slds-p-around_medium"
-                    >
-                        <div class="slds-text-body_regular">{record.CreatedDate}</div>
-                        <div class="slds-text-heading_small">{record.Field_API_Name__c}</div>
-                        <div class="slds-text-body_regular">{record.Original_Value__c}</div>
-                        <div class="slds-text-body_regular">{record.New_Value__c}</div>
-                        <div class="slds-text-body_regular">{record.CreatedBy.Name}</div>
-                    </div>
-                </template>
+            <template if:false={relatedListRecords}>
+                <lightning-spinner alternative-text="Loading"></lightning-spinner>
             </template>
         </div>
+        <lightning-card
+            class="slds-var-m-around_medium"
+            if:true={relatedListRecords}
+        >
+            <lightning-datatable
+                key-field="id"
+                data={relatedListRecords}
+                columns={columns}
+                hide-checkbox-column
+            >
+            </lightning-datatable>
+        </lightning-card>
     </lightning-card>
 </template>

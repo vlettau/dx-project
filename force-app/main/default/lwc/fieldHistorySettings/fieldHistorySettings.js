@@ -1,6 +1,5 @@
 import { LightningElement, api, wire, track } from 'lwc'
-import { getRecord, createRecord, updateRecord } from 'lightning/uiRecordApi'
-import { getRelatedListRecords } from 'lightning/uiRelatedListApi'
+import { createRecord, updateRecord } from 'lightning/uiRecordApi'
 import { getObjectInfo } from 'lightning/uiObjectInfoApi'
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
 import getTrackedFields from '@salesforce/apex/FieldHistorySettingsController.getTrackedFields'
@@ -32,7 +31,12 @@ export default class FieldHistorySettings extends LightningElement {
 		if ( data ) {
 			this.fieldsInfo = []
 			const fields = data.fields
+			for ( const field in data.fields ) {
+				const fieldLabel = data.fields[ field ].label
+				console.log( 'fieldLabel', fieldLabel )
+			}
 			console.log( 'fields', fields )
+
 			console.log( 'wiredObjectInfo', data )
 			this.getTrackedFieldsLWC( this.objectApiName )
 				.then(
