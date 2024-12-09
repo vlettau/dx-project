@@ -13,16 +13,13 @@
         </template>
         <template if:true={fieldsInfo}>
             <table
-                class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped slds-table_hoverable slds-table_fixed-layout"
+                class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped slds-table_fixed-layout"
             >
                 <thead>
                     <tr>
                         <th>Track</th>
                         <th>Field Name</th>
                         <th>Label</th>
-                        <!-- <th>Data Type</th> -->
-                        <!-- <th>Is Createable</th>
-                        <th>Is Required</th> -->
                     </tr>
                 </thead>
                 <tbody>
@@ -42,9 +39,6 @@
                             </td>
                             <td>{field.fieldName}</td>
                             <td>{field.label}</td>
-                            <!-- <td>{field.dataType}</td> -->
-                            <!-- <td>{field.isCreateable}</td>
-                            <td>{field.isRequired}</td> -->
                         </tr>
                     </template>
                 </tbody>
