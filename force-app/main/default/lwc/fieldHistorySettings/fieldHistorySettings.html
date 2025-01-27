@@ -1,9 +1,4 @@
 <template>
-    <c-related-field-history-records
-        record-id={recordId}
-        object-api-name={objectApiName}
-        fields-info={fieldsInfo}
-    ></c-related-field-history-records>
     <lightning-card
         title="Field History Tracking Settings"
         icon-name="custom:custom63"
@@ -12,37 +7,42 @@
             <p class="slds-var-p-horizontal_small">Object API Name: {objectApiName}</p>
         </template>
         <template if:true={fieldsInfo}>
-            <table
-                class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped slds-table_fixed-layout"
+            <div
+                class="slds-scrollable_y"
+                style="height: auto; max-height: 400px; padding:10px; overflow-y: auto;"
             >
-                <thead>
-                    <tr>
-                        <th>Track</th>
-                        <th>Field Name</th>
-                        <th>Label</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <template
-                        for:each={fieldsInfo}
-                        for:item="field"
-                    >
-                        <tr key={field.fieldName}>
-                            <!-- Checkbox column for tracking -->
-                            <td>
-                                <lightning-input
-                                    type="checkbox"
-                                    data-id={field.fieldName}
-                                    onchange={handleCheckboxChange}
-                                    checked={field.isTracked}
-                                ></lightning-input>
-                            </td>
-                            <td>{field.fieldName}</td>
-                            <td>{field.label}</td>
+                <table
+                    class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped slds-table_fixed-layout"
+                >
+                    <thead>
+                        <tr>
+                            <th>Track</th>
+                            <th>Field Name</th>
+                            <th>Label</th>
                         </tr>
-                    </template>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <template
+                            for:each={fieldsInfo}
+                            for:item="field"
+                        >
+                            <tr key={field.fieldName}>
+                                <!-- Checkbox column for tracking -->
+                                <td>
+                                    <lightning-input
+                                        type="checkbox"
+                                        data-id={field.fieldName}
+                                        onchange={handleCheckboxChange}
+                                        checked={field.isTracked}
+                                    ></lightning-input>
+                                </td>
+                                <td>{field.fieldName}</td>
+                                <td>{field.label}</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
             <lightning-button
                 label="Save"
                 onclick={saveFieldHistorySettings}

@@ -4,6 +4,8 @@ import getTrackedFields from '@salesforce/apex/FieldHistorySettingsController.ge
 import getTrackedFieldsValues from '@salesforce/apex/FieldHistorySettingsController.getTrackedFieldsValues'
 import TRACKED_FIELDS_DATA from '@salesforce/schema/Field_History_Setting__c.Tracked_Fields_Data__c'
 import getFieldHistoryRecord from '@salesforce/apex/FieldHistorySettingsController.getFieldHistoryRecord'
+import { publish, MessageContext, APPLICATION_SCOPE } from 'lightning/messageService'
+import FIELD_HISTORY_CHANNEL from '@salesforce/messageChannel/FieldHistoryMessageChannel__c'
 
 export default class FieldHistoryTracker extends LightningElement {
     @api recordId // Dynamically receives the record ID
@@ -11,6 +13,8 @@ export default class FieldHistoryTracker extends LightningElement {
     @track fieldNames = [];
     @track fieldSet = new Set();
 
+    @wire( MessageContext )
+    messageContext
 
     connectedCallback () {
         console.log( 'recordId', this.recordId )
@@ -63,17 +67,19 @@ export default class FieldHistoryTracker extends LightningElement {
             for ( const field in fields ) {
                 console.log( 'this.objectApiName', this.objectApiName )
                 console.log( 'field', field )
-                console.log( 'field.label', field.label )
-                const fieldLabel = field.label
-                console.log( 'fieldLabel', fieldLabel )
                 console.log( 'fields[ field ]', fields[ field ].value )
                 console.log( 'this.recordId', this.recordId )
-                this.getFieldHistoryRecordLWC( this.objectApiName, fieldLabel, field, fields[ field ].value, this.recordId )
+                this.getFieldHistoryRecordLWC( this.objectApiName, field, fields[ field ].value, this.recordId )
                     .then(
                         data => {
                             console.log( 'getFieldHistoryRecordLWC data', data )
                         }
-                    ).catch(
+                    ).then(
+                        () => {
+                            this.publishToMessageChannel()
+                        }
+                    )
+                    .catch(
                         error => {
                             console.log( 'getFieldHistoryRecordLWC error', error )
                         }
@@ -101,19 +107,23 @@ export default class FieldHistoryTracker extends LightningElement {
         }
     }
 
-    async getFieldHistoryRecordLWC ( objectApiName, fieldLabel, fieldApiName, fieldValue, recordId ) {
+    async getFieldHistoryRecordLWC ( objectApiName, fieldName, fieldValue, recordId ) {
         try {
             console.log( 'getFieldHistoryRecordLWC objectApiName', objectApiName )
-            console.log( 'getFieldHistoryRecordLWC fieldLabel', fieldLabel )
-            console.log( 'getFieldHistoryRecordLWC fieldApiName', fieldApiName )
+            console.log( 'getFieldHistoryRecordLWC fieldName', fieldName )
             console.log( 'getFieldHistoryRecordLWC fieldValue', fieldValue )
             console.log( 'getFieldHistoryRecordLWC recordId', recordId )
-            const data = await getFieldHistoryRecord( { objectApiName: objectApiName, fieldLabel: fieldLabel, fieldApiName: fieldApiName, fieldValue: fieldValue, recordId: recordId } )
+            const data = await getFieldHistoryRecord( { objectApiName: objectApiName, fieldName: fieldName, fieldValue: fieldValue, recordId: recordId } )
             console.log( 'getFieldHistoryRecordLWC data', data )
             return data
         } catch ( error ) {
             console.error( 'getFieldHistoryRecordLWC error', error )
             return []
         }
+    }
+
+    publishToMessageChannel () {
+        console.log( 'publishToMessageChannel', this.messageContext )
+        publish( this.messageContext, FIELD_HISTORY_CHANNEL, { message: 'Hello, World!' } )
     }
 }

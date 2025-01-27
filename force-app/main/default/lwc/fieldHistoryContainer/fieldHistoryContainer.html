@@ -1,0 +1,13 @@
+<template>
+    <c-related-field-history-records
+        record-id={recordId}
+        object-api-name={objectApiName}
+    ></c-related-field-history-records>
+
+    <template if:true={isAdmin}>
+        <c-field-history-settings
+            record-id={recordId}
+            object-api-name={objectApiName}
+        ></c-field-history-settings>
+    </template>
+</template>

@@ -33,15 +33,12 @@ public with sharing class FieldHistorySettingsController {
     }
 
     @AuraEnabled
-    public static void createFieldHistoryRecord(String objectApiName, String fieldLabel, String fieldApiName, String newFieldValue, String oldFieldValue, String recordId) {
-        if ( fieldLabel == null ) {
-            fieldLabel = fieldApiName;
-        }
+    public static void createFieldHistoryRecord(String objectApiName, String fieldName, String fieldLabel, String newFieldValue, String oldFieldValue, String recordId) {
         try {
             Field_History__c fieldHistoryRecord = new Field_History__c(
                 Object_API_Name__c = objectApiName, 
+                Field_API_Name__c = fieldName, 
                 Field_Label__c = fieldLabel, 
-                Field_API_Name__c = fieldApiName, 
                 New_Value__c = newFieldValue, 
                 Original_Value__c = oldFieldValue, 
                 Record_Id__c = recordId
@@ -55,34 +52,37 @@ public with sharing class FieldHistorySettingsController {
     }
 
     @AuraEnabled
-    public static void getFieldHistoryRecord(String objectApiName, String fieldLabel, String fieldApiName, String fieldValue, String recordId) {
+    public static void getFieldHistoryRecord(String objectApiName, String fieldName, String fieldValue, String recordId) {
         System.debug('objectApiName: ' + objectApiName);
-        System.debug('fieldLabel: ' + fieldLabel);
-        System.debug('fieldApiName: ' + fieldApiName);
+        System.debug('fieldName: ' + fieldName);
         System.debug('fieldValue: ' + fieldValue);
         System.debug('recordId: ' + recordId);
+
+        String fieldLabel = getFieldLabel(objectApiName, fieldName);
+        System.debug('fieldLabel: ' + fieldLabel);
+
         List<Field_History__c> fhrs = [SELECT Id, Field_API_Name__c, New_Value__c, Original_Value__c, 
-                                              Object_API_Name__c
+                                              Object_API_Name__c, Field_Label__c
                                        FROM Field_History__c
-                                       WHERE Record_Id__c = :recordId AND Field_API_Name__c = :fieldApiName
+                                       WHERE Record_Id__c = :recordId AND Field_API_Name__c = :fieldName
                                        ORDER BY CreatedDate DESC
                                        LIMIT 1];
         //compare the field value with the current field value
         if ( fhrs.size() < 1 ) {
-            createFieldHistoryRecord(objectApiName, fieldLabel, fieldApiName, fieldValue, '', recordId);
+            createFieldHistoryRecord(objectApiName, fieldName, fieldLabel, fieldValue, '', recordId);
 
         }
         else {
             for ( Field_History__c fhr : fhrs ) {
-                if ( fhr.Field_API_Name__c == fieldApiName && fhr.New_Value__c != fieldValue ) {
+                if ( fhr.Field_API_Name__c == fieldName && fhr.New_Value__c != fieldValue ) {
                     System.debug('fhrs is not null');
                     System.debug('Original_Value__c: ' + fhr.Original_Value__c);
                     System.debug('fieldValue: ' + fieldValue);
                     System.debug('recordId: ' + recordId);
                     System.debug('objectApiName: ' + objectApiName);
-                    System.debug('fieldApiName: ' + fieldApiName);
+                    System.debug('fieldName: ' + fieldName);
                     System.debug('createFieldHistoryRecord');
-                    createFieldHistoryRecord(objectApiName, fieldLabel, fieldApiName, fieldValue, fhr.New_Value__c, recordId);
+                    createFieldHistoryRecord(objectApiName, fieldName, fhr.Field_Label__c, fieldValue, fhr.New_Value__c, recordId);
                 }
                 else {
                     System.debug('Field value is the same: ' + fhr.New_Value__c);
@@ -93,8 +93,8 @@ public with sharing class FieldHistorySettingsController {
 
     @AuraEnabled
     public static List<Field_History__c> getFieldHistoryRecords(String recordId) {
-        List<Field_History__c> fhrs = [SELECT Id, Field_API_Name__c, Field_Label__c, New_Value__c, 
-                                              Original_Value__c, CreatedBy.Name, CreatedDate, Object_API_Name__c
+        List<Field_History__c> fhrs = [SELECT Id, Field_API_Name__c, New_Value__c, Original_Value__c, 
+                                              CreatedBy.Name, CreatedDate, Object_API_Name__c, Field_Label__c
                                        FROM Field_History__c
                                        WHERE Record_Id__c = :recordId
                                        ORDER BY CreatedDate DESC];
@@ -106,6 +106,14 @@ public with sharing class FieldHistorySettingsController {
         return [SELECT Profile.Name
                 FROM User
                 WHERE Id = :UserInfo.getUserId()].Profile.Name;
+    }
+
+    // Dynamic method for retrieving field label
+    public static String getFieldLabel(String objectName, String fieldName) {
+        Schema.DescribeSObjectResult objDesc = Schema.getGlobalDescribe().get(objectName).getDescribe();
+        Schema.DescribeFieldResult fieldDesc = objDesc.fields.getMap().get(fieldName).getDescribe();
+        System.debug('fieldDesc: ' + fieldDesc);
+        return fieldDesc.getLabel();
     }
 
 }

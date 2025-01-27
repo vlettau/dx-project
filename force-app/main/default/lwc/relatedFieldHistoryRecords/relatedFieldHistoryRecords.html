@@ -1,13 +1,19 @@
 <template>
-    <lightning-card title="Field History">
-        <div class="slds-p-around_medium">
-            <template if:false={relatedListRecords}>
-                <lightning-spinner alternative-text="Loading"></lightning-spinner>
-            </template>
-        </div>
-        <lightning-card
-            class="slds-var-m-around_medium"
-            if:true={relatedListRecords}
+
+
+    <template if:false={relatedListRecords}>
+        <lightning-spinner alternative-text="Loading"></lightning-spinner>
+    </template>
+
+    <lightning-card
+        title="Custom Field History Tracking"
+        icon-name="custom:custom39"
+        class="slds-var-m-around_medium"
+        if:true={relatedListRecords}
+    >
+        <div
+            class="slds-scrollable_y"
+            style="height: auto; max-height: 400px; padding:10px; overflow-y: auto;"
         >
             <lightning-datatable
                 key-field="id"
@@ -16,6 +22,7 @@
                 hide-checkbox-column
             >
             </lightning-datatable>
-        </lightning-card>
+        </div>
     </lightning-card>
+
 </template>
