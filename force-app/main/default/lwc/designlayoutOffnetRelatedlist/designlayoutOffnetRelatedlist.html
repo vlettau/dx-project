@@ -1,0 +1,21 @@
+<template>
+    <lightning-card title="Related Off Net Records List" icon-name="standard:account">
+        <div class="slds-var-m-around_medium">
+            <template if:true={offnetRelatedList}>
+                <lightning-datatable
+                    data={offnetRelatedList}
+                    columns={columns}
+                    key-field="Id"
+                    hide-checkbox-column="true"
+                >
+                </lightning-datatable>
+            </template>
+            <template if:false={offnetRelatedList}>
+                <div class="slds-align_absolute-center slds-var-m-vertical_medium">
+                    <lightning-spinner alternative-text="Loading..." size="small"></lightning-spinner>
+                    <p>No related records found.</p>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

@@ -1,0 +1,106 @@
+<!-- sldsValidatorIgnore -->
+<!--
+  @description       : 
+  @author            : tfe
+  @group             : 
+  @last modified on  : 12-03-2024
+  @last modified by  : Sean Armstrong
+-->
+<template>
+    <div if:true={loading}>
+        <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+    </div>
+	<template if:true={showSearchBar}>
+		<div class="slds-m-around_medium">
+			<lightning-textarea 
+				label="Search Circuit Ids" 
+				message-when-value-missing="Please paste in your list of line-separated Circuit Ids"
+				value={pastedListOfCircuitIds}
+				onchange={handlePastedIds}>
+			</lightning-textarea>
+			<div class="slds-p-top_x-small">
+				<lightning-button label="Clear"  class="slds-p-horizontal_medium" onclick={handleClear} ></lightning-button>
+				<lightning-button label="Search" variant="brand" class="slds-p-horizontal_medium" onclick={handleSearch} disabled={searchButtonDisabled}></lightning-button>
+				<template if:true={showExportButton}>
+					<lightning-button label="Export Results" variant="success" class="slds-p-horizontal_medium" onclick={handleExport}></lightning-button>
+				</template>
+			</div>
+    </div>
+	</template>
+    <template if:true={showFailures}>
+        <div class="failureTable slds-p-bottom_small">
+            <lightning-card title="Failed To Find"> 
+                <lightning-datatable
+                        key-field="circuitId"
+                        data={failedCircuits}
+                        columns={failedColumns}
+                        onrowselection={handleFailedRowSelection}>
+                </lightning-datatable>
+                <div class="slds-p-top_x-small">
+                    <lightning-button label="Remove From Failed" variant="destructive" class="slds-p-horizontal_medium" onclick={handleFailedRemoval} disabled={disableFailedRemoveButton}></lightning-button>
+                    <lightning-button data-id="service" label="Retry Search" variant="brand" class="slds-p-horizontal_medium" onclick={handleSearchRetryForFailedIds} disabled={disableRetrySearchButton}></lightning-button>
+                    <lightning-button data-id="copyIds" label="Copy IDs" variant="brand" class="slds-p-horizontal_medium" data-type="failed" onclick={handleCopyToClipboard}></lightning-button>
+                </div>
+            </lightning-card>
+        </div>
+    </template>
+    <template if:true={showSuccesses}>
+        <div class="slds-p-bottom_small">
+            <lightning-card title="Successfully Found">
+                <lightning-datatable
+                        key-field="circuitId"
+                        data={successfulCircuits}
+                        columns={successColumns}
+                        onrowselection={handleSuccessRowSelection}>
+                </lightning-datatable>
+                	<div class="slds-grid slds-grid_align-space slds-p-top_x-small">
+						<div class="slds-col">
+							<lightning-button data-id="copyIds" label="Copy IDs"  class="slds-p-horizontal_medium" data-type="sucess" onclick={handleCopyToClipboard}></lightning-button>
+						</div>
+						<template if:true={showMaintenanceLayout}>
+							<div class="slds-col">
+								<span><lightning-button data-id="service" label="Add Service Affecting" variant="brand" class="slds-p-horizontal_medium" onclick={handleAddButtons} disabled={disableServiceAffectingButton}></lightning-button></span>
+							</div>
+							<div class="slds-col">
+								<span><lightning-button data-id="nonservice" label="Add Non-Service Affecting" variant="brand" class="slds-p-horizontal_medium" onclick={handleAddButtons} disabled={disableNonServiceAffectingButton}></lightning-button></span>
+							</div>
+						</template>
+						<template if:true={showOutageLayout}>
+							<div class="slds-col">
+								<span><lightning-button data-id="outage" label="Add to Outage Ticket" variant="brand" class="slds-p-horizontal_medium" onclick={handleAddButtons} disabled={disableAddToOutageButton}></lightning-button></span>
+							</div>
+						</template>
+                  </div>
+            </lightning-card>
+        </div>
+    </template>
+    <template if:true={showChildCases}>
+        <div class="slds-p-bottom_small">
+            <lightning-card title={childCaseTableLabel}>
+                <div class="childCaseTable">
+                    <lightning-datatable
+                        key-field="caseId"
+                        data={childCaseData}
+                        columns={childCaseColumns}
+                        onrowselection={handleChildCaseRowSelection}>
+                    </lightning-datatable>
+                    <div class="slds-p-top_x-small">
+                        <lightning-button data-id="closeCase" label="Close Case" variant="brand" class="slds-p-horizontal_medium" onclick={handleCloseCase} disabled={disableCloseCaseButton}></lightning-button>
+                        <lightning-button data-id="reopenCase" label="Reopen Case" variant="brand" class="slds-p-horizontal_medium" onclick={handleReopenCase} disabled={disableReopenCaseButton}></lightning-button>
+						<lightning-button data-id="sendEmail" label="Send Email" variant="brand" class="slds-p-horizontal_medium" onclick={handleSendEmail} disabled={disableSendEmailButton}></lightning-button>
+                    </div>
+                </div>
+            </lightning-card>
+        </div>
+    </template>
+	<template if:true={showChildCaseEmail}>
+		<template if:true={showSendEmailFlow}>
+			<lightning-flow
+				flow-api-name='SCRN_Send_Service_Email_via_SendGrid'
+				flow-input-variables={sendEmailInputs}
+				onstatuschange={handleFlowStatusChange}
+			>
+			</lightning-flow>
+		</template>
+	</template>
+</template>
